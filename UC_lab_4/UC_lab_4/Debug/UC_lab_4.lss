@@ -1,12 +1,12 @@
 
-AVRASM ver. 2.2.8  C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_4\UC_lab_4\project_B.asm Mon Aug 25 18:25:09 2025
+AVRASM ver. 2.2.8  C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_4\UC_lab_4\task_10_E.asm Tue Aug 26 13:52:25 2025
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
-C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_4\UC_lab_4\project_B.asm(14): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
+C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_4\UC_lab_4\task_10_E.asm(4): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
-C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_4\UC_lab_4\project_B.asm(14): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
+C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_4\UC_lab_4\task_10_E.asm(4): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
                                  
-                                 ; ============================================================================
+                                 ; LED Matrix Display Driver with 4x4 Keypad for ATmega328P
                                  
                                  ;***** Created: 2011-02-09 12:03 ******* Source: ATmega328P.xml **********
                                  ;*************************************************************************
@@ -987,17 +987,7 @@ C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-
                                  
                                  ; ***** END OF FILE ******************************************************
                                  
-                                 ; Combined Mini Piano with LED Matrix Display
-                                 ; Target: ATmega328P (Arduino Uno compatible)
-                                 ;
-                                 ; Features:
-                                 ; - Scans 4x4 keyboard for 16 natural notes (C to D across two octaves per switch position).
-                                 ; - Plays note on buzzer using Timer0 overflow for tone generation.
-                                 ; - Octave shift via switch on PB0 (LOW: base octave, HIGH: +1 octave).
-                                 ; - Displays the note letter (A-G) on the LED matrix in a single 5x7 block.
-                                 ; - Display refreshes via Timer2 (~3kHz row scan).
-                                 ; - Note display clears when key is released.
-                                 ; ============================================================================
+                                 ; Pin Assignment: PB3=Data, PB4=Latch, PB5=Clock, PD7-4=Keypad Rows, PD3-0=Keypad Cols
                                  
                                  .include "m328pdef.inc"
                                  
@@ -1044,733 +1034,796 @@ C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-
                                  
                                  ; ***** END OF FILE ******************************************************
                                  
-                                 ; =============================================================================
-                                 ; CONFIGURATION CONSTANTS
-                                 ; =============================================================================
+                                 ; Constants
+                                 .equ SR_DDR           = DDRB
+                                 .equ SR_PORT          = PORTB
+                                 .equ SR_PINREG        = PINB
+                                 .equ SR_DATA_PIN      = 3
+                                 .equ SR_CLOCK_PIN     = 5
+                                 .equ SR_LATCH_PIN     = 4
                                  
-                                 ; --- Port B pins: Shift chain for display + Buzzer + Switch ---
-                                 .equ SR_DATA_PIN    = 3          ; PB3 ? Serial data
-                                 .equ SR_CLOCK_PIN   = 5          ; PB5 ? SR clock
-                                 .equ SR_LATCH_PIN   = 4          ; PB4 ? Latch/strobe
-                                 .equ BUZZER_PIN     = 1          ; PB1 ? Buzzer output
-                                 .equ SWITCH_PIN     = 0          ; PB0 ? Octave switch input
+                                 ; Timer0 Configuration
+                                 .equ T0_LATCH_DELAY   = 240
+                                 .equ TIMER0_PRESCALER = (1<<CS02)|(1<<CS01)|(1<<CS00)
                                  
-                                 .equ SR_OUTPUT_MASK = (1<<SR_DATA_PIN)|(1<<SR_LATCH_PIN)|(1<<SR_CLOCK_PIN)|(1<<BUZZER_PIN)
-                                 .equ SR_PORT_INIT   = (1<<SR_DATA_PIN)|(1<<SR_LATCH_PIN)|(1<<SR_CLOCK_PIN)|(1<<SWITCH_PIN)  ; Pull-up on switch
+                                 ; Keypad Configuration
+                                 .equ KEYPAD_DDR       = DDRD
+                                 .equ KEYPAD_PORT      = PORTD
+                                 .equ KEYPAD_PIN       = PIND
+                                 .equ KEYPAD_ROW_MASK  = 0b11110000
+                                 .equ KEYPAD_COL_MASK  = 0b00001111
+                                 .equ DEBOUNCE_CYCLES  = 5
                                  
-                                 ; --- Timers ---
-                                 .equ T2_PRELOAD_4KHZ = 251       ; ~3.125 kHz actual with presc=1024
-                                 .equ TIMER2_PRESCALER = (1<<CS22)|(1<<CS21)|(1<<CS20)  ; 1024
+                                 ; Keypad pins
+                                 .equ ROW_1            = 7
+                                 .equ ROW_2            = 6
+                                 .equ ROW_3            = 5
+                                 .equ ROW_4            = 4
+                                 .equ COL_0            = 3
+                                 .equ COL_1            = 2
+                                 .equ COL_2            = 1
+                                 .equ COL_3            = 0
                                  
-                                 ; --- Display geometry ---
-                                 .equ MATRIX_ROWS      = 7        ; 7 active rows
-                                 .equ MATRIX_COLS      = 5        ; 5 cols per character row
-                                 .equ COLUMN_CYCLES    = 16       ; 16 cascaded 5x7 blocks
-                                 .equ TARGET_BLOCK     = 15       ; Block to display in (0..15)
+                                 ; Keypad scan codes
+                                 .equ KEY_7 = 1
+                                 .equ KEY_8 = 2
+                                 .equ KEY_9 = 3
+                                 .equ KEY_F = 4
+                                 .equ KEY_4 = 5
+                                 .equ KEY_5 = 6
+                                 .equ KEY_6 = 7
+                                 .equ KEY_E = 8
+                                 .equ KEY_1 = 9
+                                 .equ KEY_2 = 10
+                                 .equ KEY_3 = 11
+                                 .equ KEY_D = 12
+                                 .equ KEY_A = 13
+                                 .equ KEY_0 = 14
+                                 .equ KEY_B = 15
+                                 .equ KEY_C = 16
                                  
-                                 ; --- Keypad Mapping (from scan_keyboard) ---
-                                 .equ KEY_C     = 13              ; C
-                                 .equ KEY_D     = 14              ; D
-                                 .equ KEY_E     = 15              ; E
-                                 .equ KEY_F     = 16              ; F
-                                 .equ KEY_G     = 9               ; G
-                                 .equ KEY_A     = 10              ; A
-                                 .equ KEY_B     = 11              ; B
-                                 .equ KEY_C_H   = 12              ; C (higher)
-                                 .equ KEY_D5    = 5               ; D (higher)
-                                 .equ KEY_E5    = 6               ; E (higher)
-                                 .equ KEY_F5    = 7               ; F (higher)
-                                 .equ KEY_G5    = 8               ; G (higher)
-                                 .equ KEY_A5    = 1               ; A (higher)
-                                 .equ KEY_B5    = 2               ; B (higher)
-                                 .equ KEY_C6    = 3               ; C (higher)
-                                 .equ KEY_D6    = 4               ; D (higher)
+                                 ; Display Matrix
+                                 .equ MATRIX_ROWS      = 7
+                                 .equ MATRIX_COLS      = 5
+                                 .equ CHAR_BYTES       = 8
+                                 .equ COLUMN_CYCLES    = 16
+                                 .equ TARGET_BLOCK     = 14
                                  
-                                 ; --- Note Frequency Preloads (clk/256 prescaler) ---
-                                 .equ TCNT0_C4 = 137
-                                 .equ TCNT0_D4 = 150
-                                 .equ TCNT0_E4 = 161
-                                 .equ TCNT0_F4 = 166
-                                 .equ TCNT0_G4 = 176
-                                 .equ TCNT0_A4 = 185
-                                 .equ TCNT0_B4 = 193
-                                 .equ TCNT0_C5 = 196
-                                 .equ TCNT0_D5_H = 203
-                                 .equ TCNT0_E5_H = 209
-                                 .equ TCNT0_F5_H = 211
-                                 .equ TCNT0_G5_H = 216
-                                 .equ TCNT0_A5_H = 220
-                                 .equ TCNT0_B5_H = 224
-                                 .equ TCNT0_C6_H = 226
-                                 .equ TCNT0_D6 = 229
-                                 .equ TCNT0_E6 = 232
-                                 .equ TCNT0_F6 = 234
-                                 .equ TCNT0_G6 = 236
-                                 .equ TCNT0_A6 = 238
-                                 .equ TCNT0_B6 = 240
-                                 .equ TCNT0_C7 = 241
-                                 .equ TCNT0_D7 = 243
+                                 .def key_state        = r24
+                                 .def debounce_counter = r23
                                  
-                                 ; --- Note Indices (0=C, 1=D, 2=E, 3=F, 4=G, 5=A, 6=B) ---
-                                 .equ NOTE_IDX_C = 0
-                                 .equ NOTE_IDX_D = 1
-                                 .equ NOTE_IDX_E = 2
-                                 .equ NOTE_IDX_F = 3
-                                 .equ NOTE_IDX_G = 4
-                                 .equ NOTE_IDX_A = 5
-                                 .equ NOTE_IDX_B = 6
-                                 .equ NOTE_IDX_NONE = 255        ; No note (blank display)
+                                 ; Derived Constants
+                                 .equ SR_OUTPUT_MASK   = (1<<SR_DATA_PIN)|(1<<SR_LATCH_PIN)|(1<<SR_CLOCK_PIN)
+                                 .equ ROW_RESET_MASK   = 0b01000000
+                                 .equ MAX_ROW_INDEX    = MATRIX_ROWS - 1
                                  
-                                 ; --- Register Definitions ---
-                                 .def temp           = r16       ; General temp
-                                 .def note_value     = r17       ; Timer0 preload for note
-                                 .def key_code       = r19       ; Pressed key code
-                                 .def current_note_idx = r23     ; Current note index for display (0-6 or 255)
+                                 ; Memory allocation
+                                 .dseg
+                                 .org 0x0100
+000100                           current_char:     .byte 1
+                                 .cseg
                                  
-                                 ; =============================================================================
-                                 ; MACROS
-                                 ; =============================================================================
-                                 
-                                 ; Shift one bit from reg @0, bit @1
+                                 ; Macros
                                  .MACRO SHIFT_BIT_OUT
-                                     sbi   PORTB, SR_DATA_PIN
+                                     sbi   SR_PORT, SR_DATA_PIN
                                      sbrs  @0, @1
-                                     cbi   PORTB, SR_DATA_PIN
-                                     sbi   PINB, SR_CLOCK_PIN
-                                     sbi   PINB, SR_CLOCK_PIN
+                                     cbi   SR_PORT, SR_DATA_PIN
+                                     sbi   SR_PINREG, SR_CLOCK_PIN
+                                     sbi   SR_PINREG, SR_CLOCK_PIN
                                  .ENDMACRO
                                  
-                                 ; =============================================================================
-                                 ; VECTORS
-                                 ; =============================================================================
+                                 .MACRO SAFE_REGISTER_CLEAR
+                                     .if @0 != r1
+                                         clr   @0
+                                     .else
+                                         .error "Cannot clear r1 - reserved zero register"
+                                     .endif
+                                 .ENDMACRO
+                                 
+                                 .MACRO BOUNDARY_CHECK_ROW
+                                     cpi   @0, MAX_ROW_INDEX + 1
+                                     brlo  PC + 2
+                                     ldi   @0, MAX_ROW_INDEX
+                                 .ENDMACRO
+                                 
+                                 ; Interrupt vectors
                                  .cseg
                                  .org 0x0000
-000000 c020                          rjmp  init                  ; Reset
+000000 c010                          rjmp  system_init
                                  
-                                 .org 0x0012
-000012 c14b                          rjmp  timer2_refresh_isr    ; Timer2 OVF (display refresh)
+                                 .org 0x0010
+000010 c158                          rjmp  timer0_latch_completion_isr
                                  
-                                 .org 0x0020
-000020 c134                          rjmp  Timer0_Overflow_ISR   ; Timer0 OVF (buzzer tone)
+                                 ; System initialization
+                                 system_init:
+000011 94f8                          cli
+                                     
+                                     ; Setup stack pointer
+000012 e008                          ldi   r16, high(RAMEND)
+000013 bf0e                          out   SPH, r16
+000014 ef0f                          ldi   r16, low(RAMEND)
+000015 bf0d                          out   SPL, r16
+                                     
+                                     ; Initialize hardware
+000016 940e 0023                     call  init_shift_register_pins
+000018 940e 0027                     call  init_keypad_pins
+00001a 940e 002c                     call  configure_timer0_system
+                                     
+                                     ; Initialize software state
+00001c 940e 003c                     call  initialize_display_state
+00001e 940e 003f                     call  initialize_keypad_state
+                                     
+000020 2411                          clr   r1
+000021 9478                          sei
+000022 c0aa                          rjmp  main_application_loop
                                  
-                                 ; =============================================================================
-                                 ; INIT
-                                 ; =============================================================================
-                                 init:
-                                     ; Stack
-000021 e008                          ldi   temp, high(RAMEND)
-000022 bf0e                          out   SPH, temp
-000023 ef0f                          ldi   temp, low(RAMEND)
-000024 bf0d                          out   SPL, temp
+                                 init_shift_register_pins:
+000023 e318                          ldi   r17, SR_OUTPUT_MASK
+000024 b914                          out   SR_DDR, r17
+000025 b915                          out   SR_PORT, r17
+000026 9508                          ret
                                  
-                                     ; Zero reg (ABI)
-000025 2411                          clr   r1
+                                 init_keypad_pins:
+000027 ef00                          ldi   r16, KEYPAD_ROW_MASK
+000028 b90a                          out   KEYPAD_DDR, r16
+000029 ef0f                          ldi   r16, 0xFF
+00002a b90b                          out   KEYPAD_PORT, r16
+00002b 9508                          ret
                                  
-                                     ; Port B: Display shift + Buzzer out + Switch in/pull-up
-000026 e30a                          ldi   temp, SR_OUTPUT_MASK
-000027 b904                          out   DDRB, temp
-000028 e309                          ldi   temp, SR_PORT_INIT
-000029 b905                          out   PORTB, temp
+                                 configure_timer0_system:
+                                     ; Configure normal mode
+00002c 9100 0024                     lds   r16, TCCR0A
+00002e 7f0c                          andi  r16, ~((1<<WGM01)|(1<<WGM00))
+00002f 9300 0024                     sts   TCCR0A, r16
+                                     
+                                     ; Stop timer initially
+000031 9100 0025                     lds   r16, TCCR0B
+000033 7f00                          andi  r16, ~((1<<WGM02)|(1<<CS02)|(1<<CS01)|(1<<CS00))
+000034 9300 0025                     sts   TCCR0B, r16
+                                     
+                                     ; Enable overflow interrupt
+000036 9100 006e                     lds   r16, TIMSK0
+000038 6001                          ori   r16, (1<<TOIE0)
+000039 9300 006e                     sts   TIMSK0, r16
+00003b 9508                          ret
                                  
-                                     ; Keyboard: PD7-4 out, PD3-0 in/pull-up
-00002a ef00                          ldi   temp, 0b11110000
-00002b b90a                          out   DDRD, temp
-00002c ef0f                          ldi   temp, 0b11111111
-00002d b90b                          out   PORTD, temp
+                                 initialize_display_state:
+00003c e066                          ldi   r22, MAX_ROW_INDEX
+00003d e450                          ldi   r21, ROW_RESET_MASK
+00003e 9508                          ret
                                  
-                                     ; Timers
-00002e d007                          rcall setup_timer2_refresh
-00002f e001                          ldi   temp, (1<<TOIE0)      ; Enable Timer0 OVF interrupt (for buzzer)
-000030 9300 006e                     sts   TIMSK0, temp
+                                 initialize_keypad_state:
+00003f e300                          ldi   r16, '0'
+000040 9300 0100                     sts   current_char, r16
+000042 ef8f                          ldi   key_state, 0xFF
+000043 2777                          clr   debounce_counter
+000044 9508                          ret
                                  
-                                     ; Display state
-000032 d017                          rcall init_display_state
+                                 ; Keypad Interface Functions
+                                 scan_keypad_nonblocking:
+000045 930f                          push  r16
+000046 931f                          push  r17
+                                     
+                                     ; Check debounce period
+000047 2377                          tst   debounce_counter
+000048 f471                          brne  skip_keypad_scan
+                                     
+                                     ; Perform keypad scan
+000049 940e 005d                     call  scan_keyboard_matrix
+                                     
+                                     ; Check if key detected
+00004b 3f0f                          cpi   r16, 0xFF
+00004c f049                          breq  no_key_pressed
+                                     
+                                     ; Check if different from current state
+00004d 1708                          cp    r16, key_state
+00004e f059                          breq  scan_keypad_exit
+                                     
+                                     ; New key detected
+00004f 2f80                          mov   key_state, r16
+000050 940e 00b3                     call  map_key_to_character
+000052 9300 0100                     sts   current_char, r16
+000054 e075                          ldi   debounce_counter, DEBOUNCE_CYCLES
+000055 c004                          rjmp  scan_keypad_exit
+                                     
+                                 no_key_pressed:
+000056 ef8f                          ldi   key_state, 0xFF
+                                     
+                                 skip_keypad_scan:
+000057 2377                          tst   debounce_counter
+000058 f009                          breq  scan_keypad_exit
+000059 957a                          dec   debounce_counter
+                                     
+                                 scan_keypad_exit:
+00005a 911f                          pop   r17
+00005b 910f                          pop   r16
+00005c 9508                          ret
                                  
-                                     ; No initial note
-000033 ef7f                          ldi   current_note_idx, NOTE_IDX_NONE
+                                 scan_keyboard_matrix:
+00005d 931f                          push  r17
+00005e 932f                          push  r18
+00005f 933f                          push  r19
+000060 934f                          push  r20
+                                     
+000061 ef3f                          ldi   r19, 0xFF    ; Default: no key found
+000062 e041                          ldi   r20, 1       ; Row counter (1-4)
+                                     
+                                 scan_next_row:
+                                     ; Set all rows HIGH
+000063 9a5f                          sbi   PORTD, ROW_1
+000064 9a5e                          sbi   PORTD, ROW_2
+000065 9a5d                          sbi   PORTD, ROW_3
+000066 9a5c                          sbi   PORTD, ROW_4
+                                     
+                                     ; Activate current row (set LOW)
+000067 3041                          cpi   r20, 1
+000068 f039                          breq  activate_row_1
+000069 3042                          cpi   r20, 2
+00006a f039                          breq  activate_row_2
+00006b 3043                          cpi   r20, 3
+00006c f039                          breq  activate_row_3
+00006d 3044                          cpi   r20, 4
+00006e f039                          breq  activate_row_4
+00006f c024                          rjmp  scan_complete
+                                     
+                                 activate_row_1:
+000070 985f                          cbi   PORTD, ROW_1
+000071 c005                          rjmp  read_columns
+                                 activate_row_2:
+000072 985e                          cbi   PORTD, ROW_2
+000073 c003                          rjmp  read_columns
+                                 activate_row_3:
+000074 985d                          cbi   PORTD, ROW_3
+000075 c001                          rjmp  read_columns
+                                 activate_row_4:
+000076 985c                          cbi   PORTD, ROW_4
+                                     
+                                 read_columns:
+000077 0000                          nop    ; Wait for signals to settle
+000078 0000                          nop
+000079 0000                          nop
+00007a 0000                          nop
+                                     
+00007b b119                          in    r17, PIND    ; Read column states
+                                     
+                                     ; Check each column
+00007c ff13                          sbrs  r17, COL_0
+00007d 940e 009a                     call  calculate_key_code_col0
+00007f ff12                          sbrs  r17, COL_1
+000080 940e 009c                     call  calculate_key_code_col1
+000082 ff11                          sbrs  r17, COL_2
+000083 940e 009e                     call  calculate_key_code_col2
+000085 ff10                          sbrs  r17, COL_3
+000086 940e 00a0                     call  calculate_key_code_col3
+                                     
+                                     ; Anti-ghosting check
+000088 2f21                          mov   r18, r17
+000089 9520                          com   r18
+00008a 702f                          andi  r18, 0x0F
+00008b 940e 00a8                     call  count_set_bits
+00008d 3002                          cpi   r16, 2
+00008e f420                          brsh  ghost_detected
+                                     
+00008f 9543                          inc   r20
+000090 3045                          cpi   r20, 5
+000091 f288                          brlo  scan_next_row
+000092 c001                          rjmp  scan_complete
+                                     
+                                 ghost_detected:
+000093 ef3f                          ldi   r19, 0xFF
+                                     
+                                 scan_complete:
+000094 2f03                          mov   r16, r19
+000095 914f                          pop   r20
+000096 913f                          pop   r19
+000097 912f                          pop   r18
+000098 911f                          pop   r17
+000099 9508                          ret
                                  
-000034 9478                          sei                         ; Global interrupts
-000035 c03e                          rjmp  main                  ; To main loop
+                                 ; Key code calculation helpers
+                                 calculate_key_code_col0:
+00009a e020                          ldi   r18, 0
+00009b c005                          rjmp  store_key_with_row
                                  
-                                 setup_timer2_refresh:
-000036 9100 00b0                     lds   temp, TCCR2A
-000038 7f0c                          andi  temp, ~((1<<WGM21)|(1<<WGM20))
-000039 9300 00b0                     sts   TCCR2A, temp
+                                 calculate_key_code_col1:
+00009c e021                          ldi   r18, 1
+00009d c003                          rjmp  store_key_with_row
                                  
-00003b 9100 00b1                     lds   temp, TCCR2B
-00003d 7f07                          andi  temp, ~(1<<WGM22)
-00003e 6007                          ori   temp, TIMER2_PRESCALER
-00003f 9300 00b1                     sts   TCCR2B, temp
+                                 calculate_key_code_col2:
+00009e e022                          ldi   r18, 2
+00009f c001                          rjmp  store_key_with_row
                                  
-000041 9100 0070                     lds   temp, TIMSK2
-000043 6001                          ori   temp, (1<<TOIE2)
-000044 9300 0070                     sts   TIMSK2, temp
+                                 calculate_key_code_col3:
+0000a0 e023                          ldi   r18, 3
+                                     
+                                 store_key_with_row:
+0000a1 2f34                          mov   r19, r20
+0000a2 953a                          dec   r19
+0000a3 0f33                          lsl   r19
+0000a4 0f33                          lsl   r19
+0000a5 0f32                          add   r19, r18
+0000a6 9533                          inc   r19
+0000a7 9508                          ret
                                  
-000046 ef0b                          ldi   temp, T2_PRELOAD_4KHZ
-000047 9300 00b2                     sts   TCNT2, temp
-000049 9508                          ret
+                                 count_set_bits:
+0000a8 931f                          push  r17
+0000a9 e000                          ldi   r16, 0
+0000aa 2f12                          mov   r17, r18
+                                     
+                                 count_loop:
+0000ab 2311                          tst   r17
+0000ac f021                          breq  count_done
+0000ad fd10                          sbrc  r17, 0
+0000ae 9503                          inc   r16
+0000af 9516                          lsr   r17
+0000b0 cffa                          rjmp  count_loop
+                                     
+                                 count_done:
+0000b1 911f                          pop   r17
+0000b2 9508                          ret
                                  
-                                 init_display_state:
-00004a e066                          ldi   r22, MATRIX_ROWS - 1  ; Row index (6..0)
-00004b e450                          ldi   r21, 0b01000000       ; One-hot row select (MSB=row6)
-00004c 9508                          ret
+                                 map_key_to_character:
+0000b3 93ff                          push  ZH
+0000b4 93ef                          push  ZL
+                                     
+                                     ; Bounds checking
+0000b5 3001                          cpi   r16, 1
+0000b6 f050                          brlo  map_default_char
+0000b7 3101                          cpi   r16, 17
+0000b8 f440                          brsh  map_default_char
+                                     
+                                     ; Convert to table index
+0000b9 950a                          dec   r16
+                                     
+                                     ; Calculate address
+0000ba e0f1                          ldi   ZH, high(keypad_char_map * 2)
+0000bb e8ea                          ldi   ZL, low(keypad_char_map * 2)
+0000bc 0fe0                          add   ZL, r16
+0000bd f408                          brcc  no_carry_map
+0000be 95f3                          inc   ZH
+                                 no_carry_map:
+0000bf 9104                          lpm   r16, Z
+0000c0 c001                          rjmp  map_exit
+                                     
+                                 map_default_char:
+0000c1 e30f                          ldi   r16, '?'
+                                     
+                                 map_exit:
+0000c2 91ef                          pop   ZL
+0000c3 91ff                          pop   ZH
+0000c4 9508                          ret
                                  
-                                 ; =============================================================================
-                                 ; FONT (5x7, bits 4:0; bit4=left LED?)
-                                 ; =============================================================================
-                                 characters:
-00004d 0906
-00004e 0909
-00004f 090f
-000050 0009                      char_A:  .db 0b00110, 0b01001, 0b01001, 0b01001, 0b01111, 0b01001, 0b01001, 0
-000051 090e
-000052 0e09
-000053 0909
-000054 000e                      char_B:  .db 0b01110, 0b01001, 0b01001, 0b01110, 0b01001, 0b01001, 0b01110, 0
-000055 0807
-000056 0808
-000057 0808
-000058 0007                      char_C:  .db 0b00111, 0b01000, 0b01000, 0b01000, 0b01000, 0b01000, 0b00111, 0
-000059 090e
-00005a 0909
-00005b 0909
-00005c 000e                      char_D:  .db 0b01110, 0b01001, 0b01001, 0b01001, 0b01001, 0b01001, 0b01110, 0
-00005d 080f
-00005e 0e08
-00005f 0808
-000060 000f                      char_E:  .db 0b01111, 0b01000, 0b01000, 0b01110, 0b01000, 0b01000, 0b01111, 0
-000061 080f
-000062 0e08
-000063 0808
-000064 0008                      char_F:  .db 0b01111, 0b01000, 0b01000, 0b01110, 0b01000, 0b01000, 0b01000, 0
-000065 0807
-000066 0b08
-000067 0909
-000068 0006                      char_G:  .db 0b00111, 0b01000, 0b01000, 0b01011, 0b01001, 0b01001, 0b00110, 0  ; Added G
-000069 0000
-00006a 0000
-00006b 0000
-00006c 0000                      char_space: .db 0, 0, 0, 0, 0, 0, 0, 0  ; Blank
+                                 ; Keypad character mapping table
+                                 keypad_char_map:
+0000c5 3837
+0000c6 4639                          .db   '7', '8', '9', 'F'    ; Row 1
+0000c7 3534
+0000c8 4536                          .db   '4', '5', '6', 'E'    ; Row 2
+0000c9 3231
+0000ca 4433                          .db   '1', '2', '3', 'D'    ; Row 3
+0000cb 3041
+0000cc 4342                          .db   'A', '0', 'B', 'C'    ; Row 4
                                  
-                                 ; Note index to font pointer table (word addresses *2 for LPM)
-                                 note_table:
-00006d 00aa
-00006e 00b2
-00006f 00ba
-000070 00c2
-000071 00ca
-000072 009a
-000073 00a2                          .dw char_C*2, char_D*2, char_E*2, char_F*2, char_G*2, char_A*2, char_B*2
-                                 
-                                 ; =============================================================================
-                                 ; MAIN LOOP (Piano Logic)
-                                 ; =============================================================================
-                                 main:
-000074 2700                          clr   temp
-000075 bd05                          out   TCCR0B, temp          ; Stop Timer0 (buzzer off)
-                                 
-                                 wait_for_press:
-000076 d08f                          rcall scan_keyboard         ; Scan for key
-000077 3030                          cpi   key_code, 0
-000078 f3e9                          breq  wait_for_press        ; Loop if none
-                                 
-                                     ; Key pressed: Read switch for octave
-000079 b103                          in    temp, PINB
-00007a fb00                          bst   temp, SWITCH_PIN      ; T-flag = switch state
-                                 
-                                     ; Map key to note preload and index
-00007b 303d                          cpi   key_code, KEY_C
-00007c f431                          brne  check_key_d
-00007d e070                          ldi   current_note_idx, NOTE_IDX_C
-00007e f016                          brts  play_c5_h
-00007f e819                          ldi   note_value, TCNT0_C4
-000080 c07a                          rjmp  play_note
-                                 play_c5_h:
-000081 ec14                          ldi   note_value, TCNT0_C5
-000082 c078                          rjmp  play_note
-                                 
-                                 check_key_d:
-000083 303e                          cpi   key_code, KEY_D
-000084 f431                          brne  check_key_e
-000085 e071                          ldi   current_note_idx, NOTE_IDX_D
-000086 f016                          brts  play_d5_h
-000087 e916                          ldi   note_value, TCNT0_D4
-000088 c072                          rjmp  play_note
-                                 play_d5_h:
-000089 ec1b                          ldi   note_value, TCNT0_D5_H
-00008a c070                          rjmp  play_note
-                                 
-                                 check_key_e:
-00008b 303f                          cpi   key_code, KEY_E
-00008c f431                          brne  check_key_f
-00008d e072                          ldi   current_note_idx, NOTE_IDX_E
-00008e f016                          brts  play_e5_h
-00008f ea11                          ldi   note_value, TCNT0_E4
-000090 c06a                          rjmp  play_note
-                                 play_e5_h:
-000091 ed11                          ldi   note_value, TCNT0_E5_H
-000092 c068                          rjmp  play_note
-                                 
-                                 check_key_f:
-000093 3130                          cpi   key_code, KEY_F
-000094 f431                          brne  check_key_g
-000095 e073                          ldi   current_note_idx, NOTE_IDX_F
-000096 f016                          brts  play_f5_h
-000097 ea16                          ldi   note_value, TCNT0_F4
-000098 c062                          rjmp  play_note
-                                 play_f5_h:
-000099 ed13                          ldi   note_value, TCNT0_F5_H
-00009a c060                          rjmp  play_note
-                                 
-                                 check_key_g:
-00009b 3039                          cpi   key_code, KEY_G
-00009c f431                          brne  check_key_a
-00009d e074                          ldi   current_note_idx, NOTE_IDX_G
-00009e f016                          brts  play_g5_h
-00009f eb10                          ldi   note_value, TCNT0_G4
-0000a0 c05a                          rjmp  play_note
-                                 play_g5_h:
-0000a1 ed18                          ldi   note_value, TCNT0_G5_H
-0000a2 c058                          rjmp  play_note
-                                 
-                                 check_key_a:
-0000a3 303a                          cpi   key_code, KEY_A
-0000a4 f431                          brne  check_key_b
-0000a5 e075                          ldi   current_note_idx, NOTE_IDX_A
-0000a6 f016                          brts  play_a5_h
-0000a7 eb19                          ldi   note_value, TCNT0_A4
-0000a8 c052                          rjmp  play_note
-                                 play_a5_h:
-0000a9 ed1c                          ldi   note_value, TCNT0_A5_H
-0000aa c050                          rjmp  play_note
-                                 
-                                 check_key_b:
-0000ab 303b                          cpi   key_code, KEY_B
-0000ac f431                          brne  check_key_c_h
-0000ad e076                          ldi   current_note_idx, NOTE_IDX_B
-0000ae f016                          brts  play_b5_h
-0000af ec11                          ldi   note_value, TCNT0_B4
-0000b0 c04a                          rjmp  play_note
-                                 play_b5_h:
-0000b1 ee10                          ldi   note_value, TCNT0_B5_H
-0000b2 c048                          rjmp  play_note
-                                 
-                                 check_key_c_h:
-0000b3 303c                          cpi   key_code, KEY_C_H
-0000b4 f431                          brne  check_key_d5
-0000b5 e070                          ldi   current_note_idx, NOTE_IDX_C
-0000b6 f016                          brts  play_c6_h
-0000b7 ec14                          ldi   note_value, TCNT0_C5
-0000b8 c042                          rjmp  play_note
-                                 play_c6_h:
-0000b9 ee12                          ldi   note_value, TCNT0_C6_H
-0000ba c040                          rjmp  play_note
-                                 
-                                 check_key_d5:
-0000bb 3035                          cpi   key_code, KEY_D5
-0000bc f431                          brne  check_key_e5
-0000bd e071                          ldi   current_note_idx, NOTE_IDX_D
-0000be f016                          brts  play_d6
-0000bf ec1b                          ldi   note_value, TCNT0_D5_H
-0000c0 c03a                          rjmp  play_note
-                                 play_d6:
-0000c1 ee15                          ldi   note_value, TCNT0_D6
-0000c2 c038                          rjmp  play_note
-                                 
-                                 check_key_e5:
-0000c3 3036                          cpi   key_code, KEY_E5
-0000c4 f431                          brne  check_key_f5
-0000c5 e072                          ldi   current_note_idx, NOTE_IDX_E
-0000c6 f016                          brts  play_e6
-0000c7 ed11                          ldi   note_value, TCNT0_E5_H
-0000c8 c032                          rjmp  play_note
-                                 play_e6:
-0000c9 ee18                          ldi   note_value, TCNT0_E6
-0000ca c030                          rjmp  play_note
-                                 
-                                 check_key_f5:
-0000cb 3037                          cpi   key_code, KEY_F5
-0000cc f431                          brne  check_key_g5
-0000cd e073                          ldi   current_note_idx, NOTE_IDX_F
-0000ce f016                          brts  play_f6
-0000cf ed13                          ldi   note_value, TCNT0_F5_H
-0000d0 c02a                          rjmp  play_note
-                                 play_f6:
-0000d1 ee1a                          ldi   note_value, TCNT0_F6
-0000d2 c028                          rjmp  play_note
-                                 
-                                 check_key_g5:
-0000d3 3038                          cpi   key_code, KEY_G5
-0000d4 f431                          brne  check_key_a5
-0000d5 e074                          ldi   current_note_idx, NOTE_IDX_G
-0000d6 f016                          brts  play_g6
-0000d7 ed18                          ldi   note_value, TCNT0_G5_H
-0000d8 c022                          rjmp  play_note
-                                 play_g6:
-0000d9 ee1c                          ldi   note_value, TCNT0_G6
-0000da c020                          rjmp  play_note
-                                 
-                                 check_key_a5:
-0000db 3031                          cpi   key_code, KEY_A5
-0000dc f431                          brne  check_key_b5
-0000dd e075                          ldi   current_note_idx, NOTE_IDX_A
-0000de f016                          brts  play_a6
-0000df ed1c                          ldi   note_value, TCNT0_A5_H
-0000e0 c01a                          rjmp  play_note
-                                 play_a6:
-0000e1 ee1e                          ldi   note_value, TCNT0_A6
-0000e2 c018                          rjmp  play_note
-                                 
-                                 check_key_b5:
-0000e3 3032                          cpi   key_code, KEY_B5
-0000e4 f431                          brne  check_key_c6
-0000e5 e076                          ldi   current_note_idx, NOTE_IDX_B
-0000e6 f016                          brts  play_b6
-0000e7 ee10                          ldi   note_value, TCNT0_B5_H
-0000e8 c012                          rjmp  play_note
-                                 play_b6:
-0000e9 ef10                          ldi   note_value, TCNT0_B6
-0000ea c010                          rjmp  play_note
-                                 
-                                 check_key_c6:
-0000eb 3033                          cpi   key_code, KEY_C6
-0000ec f431                          brne  check_key_d6
-0000ed e070                          ldi   current_note_idx, NOTE_IDX_C
-0000ee f016                          brts  play_c7
-0000ef ee12                          ldi   note_value, TCNT0_C6_H
-0000f0 c00a                          rjmp  play_note
-                                 play_c7:
-0000f1 ef11                          ldi   note_value, TCNT0_C7
-0000f2 c008                          rjmp  play_note
-                                 
-                                 check_key_d6:
-0000f3 3034                          cpi   key_code, KEY_D6
-0000f4 f459                          brne  other_key_pressed
-0000f5 e071                          ldi   current_note_idx, NOTE_IDX_D
-0000f6 f016                          brts  play_d7
-0000f7 ee15                          ldi   note_value, TCNT0_D6
-0000f8 c002                          rjmp  play_note
-                                 play_d7:
-0000f9 ef13                          ldi   note_value, TCNT0_D7
-0000fa c000                          rjmp  play_note
-                                 
-                                 play_note:
-0000fb e004                          ldi   temp, (1<<CS02)       ; Start Timer0 (clk/256)
-0000fc bd05                          out   TCCR0B, temp
-0000fd d004                          rcall wait_for_release      ; Hold until released
-0000fe ef7f                          ldi   current_note_idx, NOTE_IDX_NONE  ; Clear display
-0000ff cf74                          rjmp  main
-                                 
-                                 other_key_pressed:
-000100 d001                          rcall wait_for_release
-000101 cf72                          rjmp  main
+                                 ; Main application loop
+                                 main_application_loop:
+0000cd 940e 0173                     call  refresh_current_display_row
+0000cf 940e 0045                     call  scan_keypad_nonblocking
+0000d1 cffb                          rjmp  main_application_loop
                                  
                                  ; =============================================================================
-                                 ; SUBROUTINES
+                                 ; CHARACTER BITMAP LOOKUP FUNCTIONS
+                                 ; Purpose: Map ASCII characters to bitmap addresses in program memory
                                  ; =============================================================================
+                                 ;
+                                 ; HOW CHARACTER DISPLAY WORKS:
+                                 ; Each character (like 'A', '5', 'F') is represented as a bitmap - a pattern of
+                                 ; dots that forms the visual shape of the character. Our display is 7 rows by 
+                                 ; 5 columns, so each character is stored as 7 bytes (one per row) plus 1 padding byte.
+                                 ;
+                                 ; EXAMPLE: The character 'A' might look like:
+                                 ; Row 0: 01110  (bits: 0b01110 = 0x0E)
+                                 ; Character bitmap lookup
+                                 get_character_bitmap_address:
+0000d2 93ff                          push  ZH
+0000d3 93ef                          push  ZL
+                                     
+                                     ; Check supported characters
+0000d4 3300                          cpi   r16, '0'
+0000d5 f109                          breq  map_char_0
+0000d6 3301                          cpi   r16, '1'
+0000d7 f111                          breq  map_char_1
+0000d8 3302                          cpi   r16, '2'
+0000d9 f119                          breq  map_char_2
+0000da 3303                          cpi   r16, '3'
+0000db f121                          breq  map_char_3
+0000dc 3304                          cpi   r16, '4'
+0000dd f129                          breq  map_char_4
+0000de 3305                          cpi   r16, '5'
+0000df f131                          breq  map_char_5
+0000e0 3306                          cpi   r16, '6'
+0000e1 f139                          breq  map_char_6
+0000e2 3307                          cpi   r16, '7'
+0000e3 f141                          breq  map_char_7
+0000e4 3308                          cpi   r16, '8'
+0000e5 f149                          breq  map_char_8
+0000e6 3309                          cpi   r16, '9'
+0000e7 f151                          breq  map_char_9
+0000e8 3401                          cpi   r16, 'A'
+0000e9 f159                          breq  map_char_A
+0000ea 3402                          cpi   r16, 'B'
+0000eb f161                          breq  map_char_B
+0000ec 3403                          cpi   r16, 'C'
+0000ed f169                          breq  map_char_C
+0000ee 3404                          cpi   r16, 'D'
+0000ef f171                          breq  map_char_D
+0000f0 3405                          cpi   r16, 'E'
+0000f1 f179                          breq  map_char_E
+0000f2 3406                          cpi   r16, 'F'
+0000f3 f181                          breq  map_char_F
+                                     
+                                     ; Default case
+0000f4 eb0a                          ldi   r16, low(char_7 * 2)
+0000f5 e012                          ldi   r17, high(char_7 * 2)
+0000f6 c02f                          rjmp  bitmap_address_exit
                                  
-                                 wait_for_release:
-000102 d003                          rcall scan_keyboard
-000103 3030                          cpi   key_code, 0
-000104 f7e9                          brne  wait_for_release
-000105 9508                          ret
+                                 map_char_0:
+0000f7 e802                          ldi   r16, low(char_0 * 2)
+0000f8 e012                          ldi   r17, high(char_0 * 2)
+0000f9 c02c                          rjmp  bitmap_address_exit
+                                 map_char_1:
+0000fa e80a                          ldi   r16, low(char_1 * 2)
+0000fb e012                          ldi   r17, high(char_1 * 2)
+0000fc c029                          rjmp  bitmap_address_exit
+                                 map_char_2:
+0000fd e902                          ldi   r16, low(char_2 * 2)
+0000fe e012                          ldi   r17, high(char_2 * 2)
+0000ff c026                          rjmp  bitmap_address_exit
+                                 map_char_3:
+000100 e90a                          ldi   r16, low(char_3 * 2)
+000101 e012                          ldi   r17, high(char_3 * 2)
+000102 c023                          rjmp  bitmap_address_exit
+                                 map_char_4:
+000103 ea02                          ldi   r16, low(char_4 * 2)
+000104 e012                          ldi   r17, high(char_4 * 2)
+000105 c020                          rjmp  bitmap_address_exit
+                                 map_char_5:
+000106 ea0a                          ldi   r16, low(char_5 * 2)
+000107 e012                          ldi   r17, high(char_5 * 2)
+000108 c01d                          rjmp  bitmap_address_exit
+                                 map_char_6:
+000109 eb02                          ldi   r16, low(char_6 * 2)
+00010a e012                          ldi   r17, high(char_6 * 2)
+00010b c01a                          rjmp  bitmap_address_exit
+                                 map_char_7:
+00010c eb0a                          ldi   r16, low(char_7 * 2)
+00010d e012                          ldi   r17, high(char_7 * 2)
+00010e c017                          rjmp  bitmap_address_exit
+                                 map_char_8:
+00010f ec02                          ldi   r16, low(char_8 * 2)
+000110 e012                          ldi   r17, high(char_8 * 2)
+000111 c014                          rjmp  bitmap_address_exit
+                                 map_char_9:
+000112 ec0a                          ldi   r16, low(char_9 * 2)
+000113 e012                          ldi   r17, high(char_9 * 2)
+000114 c011                          rjmp  bitmap_address_exit
+                                 map_char_A:
+000115 e502                          ldi   r16, low(char_A * 2)
+000116 e012                          ldi   r17, high(char_A * 2)
+000117 c00e                          rjmp  bitmap_address_exit
+                                 map_char_B:
+000118 e50a                          ldi   r16, low(char_B * 2)
+000119 e012                          ldi   r17, high(char_B * 2)
+00011a c00b                          rjmp  bitmap_address_exit
+                                 map_char_C:
+00011b e602                          ldi   r16, low(char_C * 2)
+00011c e012                          ldi   r17, high(char_C * 2)
+00011d c008                          rjmp  bitmap_address_exit
+                                 map_char_D:
+00011e e60a                          ldi   r16, low(char_D * 2)
+00011f e012                          ldi   r17, high(char_D * 2)
+000120 c005                          rjmp  bitmap_address_exit
+                                 map_char_E:
+000121 e702                          ldi   r16, low(char_E * 2)
+000122 e012                          ldi   r17, high(char_E * 2)
+000123 c002                          rjmp  bitmap_address_exit
+                                 map_char_F:
+000124 e70a                          ldi   r16, low(char_F * 2)
+000125 e012                          ldi   r17, high(char_F * 2)
+                                     
+                                 bitmap_address_exit:
+000126 91ef                          pop   ZL
+000127 91ff                          pop   ZH
+000128 9508                          ret
                                  
-                                 scan_keyboard:
-000106 2733                          clr   key_code              ; Default: no key
+                                 ; Character bitmap data (7x5 pixel font)
+                                 character_bitmap_table:
                                  
-                                     ; Row 1 (PD4 low)
-000107 ee0f                          ldi   temp, 0b11101111
-000108 b90b                          out   PORTD, temp
-000109 0000                          nop
-00010a 994b                          sbic  PIND, 3
-00010b c002                          rjmp  k1_np
-00010c e031                          ldi   key_code, 1
-00010d c044                          rjmp  key_found
-                                 k1_np:
-00010e 994a                          sbic  PIND, 2
-00010f c002                          rjmp  k2_np
-000110 e032                          ldi   key_code, 2
-000111 c040                          rjmp  key_found
-                                 k2_np:
-000112 9949                          sbic  PIND, 1
-000113 c002                          rjmp  k3_np
-000114 e033                          ldi   key_code, 3
-000115 c03c                          rjmp  key_found
-                                 k3_np:
-000116 9948                          sbic  PIND, 0
-000117 c002                          rjmp  scan_row2
-000118 e034                          ldi   key_code, 4
-000119 c038                          rjmp  key_found
+000129 0906
+00012a 0909
+00012b 090f
+00012c 0009                      char_A:  .db 0b00110, 0b01001, 0b01001, 0b01001, 0b01111, 0b01001, 0b01001, 0
+00012d 090e
+00012e 0e09
+00012f 0909
+000130 000e                      char_B:  .db 0b01110, 0b01001, 0b01001, 0b01110, 0b01001, 0b01001, 0b01110, 0
+000131 0807
+000132 0808
+000133 0808
+000134 0007                      char_C:  .db 0b00111, 0b01000, 0b01000, 0b01000, 0b01000, 0b01000, 0b00111, 0
+000135 090e
+000136 0909
+000137 0909
+000138 000e                      char_D:  .db 0b01110, 0b01001, 0b01001, 0b01001, 0b01001, 0b01001, 0b01110, 0
+000139 080f
+00013a 0e08
+00013b 0808
+00013c 000f                      char_E:  .db 0b01111, 0b01000, 0b01000, 0b01110, 0b01000, 0b01000, 0b01111, 0
+00013d 080f
+00013e 0e08
+00013f 0808
+000140 0008                      char_F:  .db 0b01111, 0b01000, 0b01000, 0b01110, 0b01000, 0b01000, 0b01000, 0
                                  
-                                 scan_row2:  ; Row 2 (PD5 low)
-00011a ed0f                          ldi   temp, 0b11011111
-00011b b90b                          out   PORTD, temp
-00011c 0000                          nop
-00011d 994b                          sbic  PIND, 3
-00011e c002                          rjmp  k5_np
-00011f e035                          ldi   key_code, 5
-000120 c031                          rjmp  key_found
-                                 k5_np:
-000121 994a                          sbic  PIND, 2
-000122 c002                          rjmp  k6_np
-000123 e036                          ldi   key_code, 6
-000124 c02d                          rjmp  key_found
-                                 k6_np:
-000125 9949                          sbic  PIND, 1
-000126 c002                          rjmp  k7_np
-000127 e037                          ldi   key_code, 7
-000128 c029                          rjmp  key_found
-                                 k7_np:
-000129 9948                          sbic  PIND, 0
-00012a c002                          rjmp  scan_row3
-00012b e038                          ldi   key_code, 8
-00012c c025                          rjmp  key_found
+000141 090f
+000142 0909
+000143 0909
+000144 000f                      char_0:  .db 0b01111, 0b01001, 0b01001, 0b01001, 0b01001, 0b01001, 0b01111, 0
+000145 0602
+000146 020a
+000147 0202
+000148 0002                      char_1:  .db 0b00010, 0b00110, 0b01010, 0b00010, 0b00010, 0b00010, 0b00010, 0
+000149 010f
+00014a 0f01
+00014b 0808
+00014c 000f                      char_2:  .db 0b01111, 0b00001, 0b00001, 0b01111, 0b01000, 0b01000, 0b01111, 0
+00014d 010f
+00014e 0701
+00014f 0101
+000150 000f                      char_3:  .db 0b01111, 0b00001, 0b00001, 0b00111, 0b00001, 0b00001, 0b01111, 0
+000151 0909
+000152 0f09
+000153 0101
+000154 0001                      char_4:  .db 0b01001, 0b01001, 0b01001, 0b01111, 0b00001, 0b00001, 0b00001, 0
+000155 080f
+000156 0f08
+000157 0101
+000158 000f                      char_5:  .db 0b01111, 0b01000, 0b01000, 0b01111, 0b00001, 0b00001, 0b01111, 0
+000159 080f
+00015a 0f08
+00015b 0909
+00015c 000f                      char_6:  .db 0b01111, 0b01000, 0b01000, 0b01111, 0b01001, 0b01001, 0b01111, 0
+00015d 010f
+00015e 0201
+00015f 0404
+000160 0004                      char_7:  .db 0b01111, 0b00001, 0b00001, 0b00010, 0b00100, 0b00100, 0b00100, 0
+000161 090f
+000162 0f09
+000163 0909
+000164 000f                      char_8:  .db 0b01111, 0b01001, 0b01001, 0b01111, 0b01001, 0b01001, 0b01111, 0
+000165 090f
+000166 0f09
+000167 0101
+000168 000f                      char_9:  .db 0b01111, 0b01001, 0b01001, 0b01111, 0b00001, 0b00001, 0b01111, 0
                                  
-                                 scan_row3:  ; Row 3 (PD6 low)
-00012d eb0f                          ldi   temp, 0b10111111
-00012e b90b                          out   PORTD, temp
-00012f 0000                          nop
-000130 994b                          sbic  PIND, 3
-000131 c002                          rjmp  k9_np
-000132 e039                          ldi   key_code, 9
-000133 c01e                          rjmp  key_found
-                                 k9_np:
-000134 994a                          sbic  PIND, 2
-000135 c002                          rjmp  k10_np
-000136 e03a                          ldi   key_code, 10
-000137 c01a                          rjmp  key_found
-                                 k10_np:
-000138 9949                          sbic  PIND, 1
-000139 c002                          rjmp  k11_np
-00013a e03b                          ldi   key_code, 11
-00013b c016                          rjmp  key_found
-                                 k11_np:
-00013c 9948                          sbic  PIND, 0
-00013d c002                          rjmp  scan_row4
-00013e e03c                          ldi   key_code, 12
-00013f c012                          rjmp  key_found
+                                 character_table_end:
                                  
-                                 scan_row4:  ; Row 4 (PD7 low)
-000140 e70f                          ldi   temp, 0b01111111
-000141 b90b                          out   PORTD, temp
-000142 0000                          nop
-000143 994b                          sbic  PIND, 3
-000144 c002                          rjmp  k13_np
-000145 e03d                          ldi   key_code, 13
-000146 c00b                          rjmp  key_found
-                                 k13_np:
-000147 994a                          sbic  PIND, 2
-000148 c002                          rjmp  k14_np
-000149 e03e                          ldi   key_code, 14
-00014a c007                          rjmp  key_found
-                                 k14_np:
-00014b 9949                          sbic  PIND, 1
-00014c c002                          rjmp  k15_np
-00014d e03f                          ldi   key_code, 15
-00014e c003                          rjmp  key_found
-                                 k15_np:
-00014f 9948                          sbic  PIND, 0
-000150 c001                          rjmp  key_found
-000151 e130                          ldi   key_code, 16
+                                 ; Timer0 overflow ISR - completes latch pulse
+                                 timer0_latch_completion_isr:
+000169 ef00                          ldi   r16, T0_LATCH_DELAY
+00016a 9300 0026                     sts   TCNT0, r16
+00016c 9a1c                          sbi   SR_PINREG, SR_LATCH_PIN
+00016d 9100 0025                     lds   r16, TCCR0B
+00016f 7f08                          andi  r16, ~((1<<CS02)|(1<<CS01)|(1<<CS00))
+000170 9300 0025                     sts   TCCR0B, r16
+000172 9518                          reti
                                  
-                                 key_found:
-000152 ef0f                          ldi   temp, 0b11111111      ; Reset rows/pull-ups
-000153 b90b                          out   PORTD, temp
-000154 9508                          ret
+                                 ; -----------------------------------------------------------------------------
+                                 ; Function: refresh_current_display_row
+                                 ; Purpose: Complete single-row refresh cycle with automatic row advancement  
+                                 ; 
+                                 ; THIS IS THE MOST COMPLEX FUNCTION - LET'S BREAK IT DOWN:
+                                 ; 
+                                 ; WHAT LED MATRIX MULTIPLEXING MEANS:
+                                 ; Our LED matrix has 7 rows and many columns, but we can only control one row
+                                 ; at a time. To display a complete character, we rapidly cycle through rows:
+                                 ; Row 0 â†’ Row 1 â†’ Row 2 â†’ ... â†’ Row 6 â†’ Row 0 â†’ ...
+                                 ; Each time, we send the correct column data for that row, then move to the next row.
+                                 ; If we do this fast enough (>50 times per second), human eyes see a stable image.
+                                 ; 
+                                 ; SHIFT REGISTER OPERATION:
+                                 ; We use a shift register (STP08DP05) to control many LEDs with just 3 wires:
+                                 ; 1. Send data bits one by one (87 bits total)
+                                 ; 2. Generate a latch pulse to transfer data to LED outputs
+                                 ; 3. Only the target block shows our character, others show nothing
+                                 ; 
+                                 ; ALGORITHM STEPS:
+                                 ; 1. Fetchâ†’Shiftâ†’Latchâ†’Advance in optimized sequence
+                                 ; 2. Get character bitmap data for current row
+                                 ; 3. Send 80 column bits (16 blocks Ã— 5 bits each)
+                                 ; 4. Send 7 row selector bits (only 1 bit high = active row)
+                                 ; 5. Generate precise latch pulse using Timer0
+                                 ; 6. Advance to next row for following iteration
+                                 ; 
+                                 ; Registers: 
+                                 ;   Input:  r21 (current row selector), r22 (current row index 0-6)  
+                                 ;   Output: r21, r22 (advanced to next row with wraparound)
+                                 ;   Temp:   r16, r17, r18, r19, r20 (automatically saved/restored)
+                                 ; Hardware: Generates 87 clock pulses + precision latch pulse
+                                 ; -----------------------------------------------------------------------------
+                                 refresh_current_display_row:
+                                     ; PRESERVE WORKING REGISTERS ON STACK (LIFO order)  
+                                     ; We need several registers for calculations. Save them so we don't
+                                     ; corrupt the main program's data.
+000173 930f                          push  r16                          ; Timer control register
+000174 931f                          push  r17                          ; General purpose calculations
+000175 932f                          push  r18                          ; Loop counter for shift register
+000176 933f                          push  r19                          ; Current block index (0-15)
                                  
-                                 ; =============================================================================
-                                 ; ISRs
-                                 ; =============================================================================
+                                 fetch_row_bitmap_data:
+                                     ; GET CURRENT CHARACTER TO DISPLAY FROM KEYPAD INPUT
+000177 9100 0100                     lds   r16, current_char            ; Load ASCII character from SRAM
+                                                                        ; This was set by keypad scanning
+000179 940e 00d2                     call  get_character_bitmap_address ; Convert ASCII to bitmap memory address
+                                                                        ; Returns r17:r16 = program memory address
+00017b 2fe0                          mov   ZL, r16                      ; Z register low byte = address low byte
+00017c 2ff1                          mov   ZH, r17                      ; Z register high byte = address high byte
+                                                                        ; Z register now points to character bitmap
+                                     
+                                     ; APPLY BOUNDS CHECKING TO PREVENT BUFFER OVERFLOW
+00017d 3067
+00017e f008
+00017f e066                          BOUNDARY_CHECK_ROW r22             ; Macro: clamp r22 to valid range (0-6)
+                                                                        ; Prevents reading beyond character data
+                                     
+                                     ; CALCULATE FINAL BYTE ADDRESS FOR CURRENT ROW
+                                     ; Each character has 8 bytes (rows 0-7), we want byte [r22]
+000180 0fe6                          add   ZL, r22                      ; Add row offset to address low byte
+000181 1df1                          adc   ZH, r1                       ; Add carry to address high byte (r1=0)
+                                                                        ; Z now points to specific row bitmap
+000182 9144                          lpm   r20, Z                       ; lpm = "Load Program Memory"
+                                                                        ; Load 5-bit row pattern into r20
                                  
-                                 Timer0_Overflow_ISR:  ; Buzzer tone
-000155 930f                          push  temp
-000156 b70f                          in    temp, SREG
-000157 930f                          push  temp
+                                 transmit_column_data:
+                                     ; TRANSMIT COLUMN DATA FOR ALL 16 BLOCKS
+                                     ; The LED driver controls 80 outputs in 16 blocks of 5 outputs each.
+                                     ; Only TARGET_BLOCK gets our character data, others get zeros.
+000183 e120                          ldi   r18, COLUMN_CYCLES           ; COLUMN_CYCLES = 16 (number of blocks)
+000184 2733                          clr   r19                          ; Current block index (0-15)
+                                     
+                                 column_transmission_loop:
+                                     ; CHECK IF THIS IS THE TARGET BLOCK
+                                     ; Only one block shows our character, others are dark
+000185 303e                          cpi   r19, TARGET_BLOCK            ; Compare current block with TARGET_BLOCK (14)
+000186 f4d1                          brne  send_zero_block              ; If not target block, send zeros
+                                     
+                                 send_character_block:
+                                     ; SEND THE ACTUAL CHARACTER DATA FOR THIS BLOCK
+                                     ; Use our SHIFT_BIT_OUT macro to send 5 bits with proper timing
+000187 9a2b
+000188 ff40
+000189 982b
+00018a 9a1d
+00018b 9a1d                          SHIFT_BIT_OUT r20, 0               ; Transmit bit 0 (rightmost column)
+00018c 9a2b
+00018d ff41
+00018e 982b
+00018f 9a1d
+000190 9a1d                          SHIFT_BIT_OUT r20, 1               ; Transmit bit 1  
+000191 9a2b
+000192 ff42
+000193 982b
+000194 9a1d
+000195 9a1d                          SHIFT_BIT_OUT r20, 2               ; Transmit bit 2 (middle column)
+000196 9a2b
+000197 ff43
+000198 982b
+000199 9a1d
+00019a 9a1d                          SHIFT_BIT_OUT r20, 3               ; Transmit bit 3
+00019b 9a2b
+00019c ff44
+00019d 982b
+00019e 9a1d
+00019f 9a1d                          SHIFT_BIT_OUT r20, 4               ; Transmit bit 4 (leftmost column)
+0001a0 c019                          rjmp  next_block                   ; Jump to block counter update
+                                     
+                                 send_zero_block:
+                                     ; SEND ZEROS FOR NON-TARGET BLOCKS
+                                     ; These blocks will be dark (r1 is always 0)
+0001a1 9a2b
+0001a2 fe10
+0001a3 982b
+0001a4 9a1d
+0001a5 9a1d                          SHIFT_BIT_OUT r1, 0                ; Transmit 0 (r1 bit 0 = 0)
+0001a6 9a2b
+0001a7 fe11
+0001a8 982b
+0001a9 9a1d
+0001aa 9a1d                          SHIFT_BIT_OUT r1, 1                ; Transmit 0 (r1 bit 1 = 0)
+0001ab 9a2b
+0001ac fe12
+0001ad 982b
+0001ae 9a1d
+0001af 9a1d                          SHIFT_BIT_OUT r1, 2                ; Transmit 0 (r1 bit 2 = 0)
+0001b0 9a2b
+0001b1 fe13
+0001b2 982b
+0001b3 9a1d
+0001b4 9a1d                          SHIFT_BIT_OUT r1, 3                ; Transmit 0 (r1 bit 3 = 0)
+0001b5 9a2b
+0001b6 fe14
+0001b7 982b
+0001b8 9a1d
+0001b9 9a1d                          SHIFT_BIT_OUT r1, 4                ; Transmit 0 (r1 bit 4 = 0)
+                                     
+                                 next_block:
+0001ba 9533                          inc   r19                          ; Move to next block (0â†’1â†’2â†’...â†’15)
+0001bb 952a                          dec   r18                          ; Decrement remaining blocks counter
+0001bc f641                          brne  column_transmission_loop     ; Continue until all 16 blocks sent
                                  
-000158 bd16                          out   TCNT0, note_value     ; Reload
-000159 9a19                          sbi   PINB, BUZZER_PIN      ; Toggle buzzer
+                                 insert_row_separator:
+                                     ; INSERT CLEAN SEPARATOR BETWEEN COLUMN AND ROW DATA  
+                                     ; This ensures clean timing between different data types
+0001bd 982b                          cbi   SR_PORT, SR_DATA_PIN         ; Ensure data line is LOW (0)
+0001be 9a1d                          sbi   SR_PINREG, SR_CLOCK_PIN      ; Generate separator clock pulse (toggle)
+0001bf 9a1d                          sbi   SR_PINREG, SR_CLOCK_PIN      ; Complete clock cycle (toggle back)
                                  
-00015a 910f                          pop   temp
-00015b bf0f                          out   SREG, temp
-00015c 910f                          pop   temp
-00015d 9518                          reti
+                                 transmit_row_select_data:
+                                     ; TRANSMIT 7-BIT ROW SELECTOR (one-hot encoding, MSB first)
+                                     ; Only one bit is HIGH at a time, indicating which physical row to activate
+                                     ; We shift MSB first because that's how the shift register works
+0001c0 9a2b
+0001c1 ff56
+0001c2 982b
+0001c3 9a1d
+0001c4 9a1d                          SHIFT_BIT_OUT r21, 6               ; Row 6 selector bit (MSB)
+0001c5 9a2b
+0001c6 ff55
+0001c7 982b
+0001c8 9a1d
+0001c9 9a1d                          SHIFT_BIT_OUT r21, 5               ; Row 5 selector bit
+0001ca 9a2b
+0001cb ff54
+0001cc 982b
+0001cd 9a1d
+0001ce 9a1d                          SHIFT_BIT_OUT r21, 4               ; Row 4 selector bit  
+0001cf 9a2b
+0001d0 ff53
+0001d1 982b
+0001d2 9a1d
+0001d3 9a1d                          SHIFT_BIT_OUT r21, 3               ; Row 3 selector bit
+0001d4 9a2b
+0001d5 ff52
+0001d6 982b
+0001d7 9a1d
+0001d8 9a1d                          SHIFT_BIT_OUT r21, 2               ; Row 2 selector bit
+0001d9 9a2b
+0001da ff51
+0001db 982b
+0001dc 9a1d
+0001dd 9a1d                          SHIFT_BIT_OUT r21, 1               ; Row 1 selector bit
+0001de 9a2b
+0001df ff50
+0001e0 982b
+0001e1 9a1d
+0001e2 9a1d                          SHIFT_BIT_OUT r21, 0               ; Row 0 selector bit (LSB)
                                  
-                                 timer2_refresh_isr:  ; Display refresh (one row)
-00015e 930f                          push  r16
-00015f b70f                          in    r16, SREG
-000160 930f                          push  r16
-000161 931f                          push  r17
-000162 932f                          push  r18
-000163 933f                          push  r19
-000164 934f                          push  r20
+                                 advance_to_next_row:
+0001e3 956a                          dec   r22
+0001e4 9556                          lsr   r21
+0001e5 f411                          brne  initiate_hardware_latch
+0001e6 e066                          ldi   r22, MAX_ROW_INDEX
+0001e7 e450                          ldi   r21, ROW_RESET_MASK
                                  
-                                     ; Steady refresh
-000165 ef0b                          ldi   r16, T2_PRELOAD_4KHZ
-000166 9300 00b2                     sts   TCNT2, r16
-                                 
-                                     ; --- Fetch row bits based on current note index ---
-000168 3077                          cpi   current_note_idx, 7
-000169 f488                          brsh  blank_row
-                                 
-00016a 2f27                          mov   r18, current_note_idx
-00016b 0f22                          lsl   r18                   ; *2 for table offset
-00016c edea                          ldi   ZL, low(note_table*2)
-00016d e0f0                          ldi   ZH, high(note_table*2)
-00016e 0fe2                          add   ZL, r18
-00016f 1df1                          adc   ZH, r1
-000170 9105                          lpm   r16, Z+
-000171 9114                          lpm   r17, Z                ; r16/17 = char_* *2
-000172 2fe0                          mov   ZL, r16
-000173 2ff1                          mov   ZH, r17
-                                 
-000174 3067                          cpi   r22, MATRIX_ROWS
-000175 f008                          brlo  row_ok
-000176 e066                          ldi   r22, MATRIX_ROWS - 1
-                                 row_ok:
-000177 0fe6                          add   ZL, r22
-000178 1df1                          adc   ZH, r1
-000179 9144                          lpm   r20, Z                ; r20 = row pattern
-00017a c001                          rjmp  row_fetched
-                                 
-                                 blank_row:
-00017b 2744                          clr   r20                   ; All LEDs off
-                                 
-                                 row_fetched:
-                                     ; --- Send columns (only TARGET_BLOCK gets pattern) ---
-00017c e120                          ldi   r18, COLUMN_CYCLES    ; Blocks loop
-00017d 2733                          clr   r19                   ; Block index
-                                 
-                                 column_shift_loop:
-00017e 303f                          cpi   r19, TARGET_BLOCK
-00017f f4d1                          brne  send_zeros
-                                 
-                                 send_pattern:
-000180 9a2b
-000181 ff40
-000182 982b
-000183 9a1d
-000184 9a1d                          SHIFT_BIT_OUT r20, 0
-000185 9a2b
-000186 ff41
-000187 982b
-000188 9a1d
-000189 9a1d                          SHIFT_BIT_OUT r20, 1
-00018a 9a2b
-00018b ff42
-00018c 982b
-00018d 9a1d
-00018e 9a1d                          SHIFT_BIT_OUT r20, 2
-00018f 9a2b
-000190 ff43
-000191 982b
-000192 9a1d
-000193 9a1d                          SHIFT_BIT_OUT r20, 3
-000194 9a2b
-000195 ff44
-000196 982b
-000197 9a1d
-000198 9a1d                          SHIFT_BIT_OUT r20, 4
-000199 c019                          rjmp  after_bits
-                                 
-                                 send_zeros:
-00019a 9a2b
-00019b fe10
-00019c 982b
-00019d 9a1d
-00019e 9a1d                          SHIFT_BIT_OUT r1, 0         ; r1=0
-00019f 9a2b
-0001a0 fe11
-0001a1 982b
-0001a2 9a1d
-0001a3 9a1d                          SHIFT_BIT_OUT r1, 1
-0001a4 9a2b
-0001a5 fe12
-0001a6 982b
-0001a7 9a1d
-0001a8 9a1d                          SHIFT_BIT_OUT r1, 2
-0001a9 9a2b
-0001aa fe13
-0001ab 982b
-0001ac 9a1d
-0001ad 9a1d                          SHIFT_BIT_OUT r1, 3
-0001ae 9a2b
-0001af fe14
-0001b0 982b
-0001b1 9a1d
-0001b2 9a1d                          SHIFT_BIT_OUT r1, 4
-                                 
-                                 after_bits:
-0001b3 9533                          inc   r19
-0001b4 952a                          dec   r18
-0001b5 f641                          brne  column_shift_loop
-                                 
-                                     ; --- Row select (7 bits, one-hot) + separator ---
-0001b6 982b                          cbi   PORTB, SR_DATA_PIN    ; Separator 0
-0001b7 9a1d                          sbi   PINB, SR_CLOCK_PIN
-0001b8 9a1d                          sbi   PINB, SR_CLOCK_PIN
-                                 
-0001b9 9a2b
-0001ba ff56
-0001bb 982b
-0001bc 9a1d
-0001bd 9a1d                          SHIFT_BIT_OUT r21, 6
-0001be 9a2b
-0001bf ff55
-0001c0 982b
-0001c1 9a1d
-0001c2 9a1d                          SHIFT_BIT_OUT r21, 5
-0001c3 9a2b
-0001c4 ff54
-0001c5 982b
-0001c6 9a1d
-0001c7 9a1d                          SHIFT_BIT_OUT r21, 4
-0001c8 9a2b
-0001c9 ff53
-0001ca 982b
-0001cb 9a1d
-0001cc 9a1d                          SHIFT_BIT_OUT r21, 3
-0001cd 9a2b
-0001ce ff52
-0001cf 982b
-0001d0 9a1d
-0001d1 9a1d                          SHIFT_BIT_OUT r21, 2
-0001d2 9a2b
-0001d3 ff51
-0001d4 982b
-0001d5 9a1d
-0001d6 9a1d                          SHIFT_BIT_OUT r21, 1
-0001d7 9a2b
-0001d8 ff50
-0001d9 982b
-0001da 9a1d
-0001db 9a1d                          SHIFT_BIT_OUT r21, 0
-                                 
-                                     ; --- Advance row ---
-0001dc 956a                          dec   r22
-0001dd 9556                          lsr   r21
-0001de f411                          brne  trigger_strobe
-                                 
-0001df e066                          ldi   r22, MATRIX_ROWS - 1
-0001e0 e450                          ldi   r21, 0b01000000
-                                 
-                                 trigger_strobe:
-0001e1 9a1c                          sbi   PINB, SR_LATCH_PIN    ; Toggle latch (start pulse)
-0001e2 0000                          nop
-0001e3 0000                          nop                         ; Short delay (~125ns @16MHz)
-0001e4 9a1c                          sbi   PINB, SR_LATCH_PIN    ; Toggle back (end pulse)
-                                 
-                                     ; Restore
-0001e5 914f                          pop   r20
-0001e6 913f                          pop   r19
-0001e7 912f                          pop   r18
-0001e8 911f                          pop   r17
-0001e9 910f                          pop   r16
-0001ea bf0f                          out   SREG, r16
-0001eb 910f                          pop   r16
-0001ec 9518                          reti
-                                 
-                                 ; =============================================================================
-                                 ; END
+                                 initiate_hardware_latch:
+0001e8 9a1c                          sbi   SR_PINREG, SR_LATCH_PIN
+0001e9 9100 0025                     lds   r16, TCCR0B
+0001eb 6007                          ori   r16, TIMER0_PRESCALER
+0001ec 9300 0025                     sts   TCCR0B, r16
+                                     
+0001ee 913f                          pop   r19
+0001ef 912f                          pop   r18
+0001f0 911f                          pop   r17
+0001f1 910f                          pop   r16
+0001f2 9508                          ret
 
 
 RESOURCE USE INFORMATION
@@ -1788,40 +1841,40 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 "ATmega328P" register use summary:
-x  :   0 y  :   0 z  :   3 r0 :   0 r1 :   8 r2 :   0 r3 :   0 r4 :   0 
+x  :   0 y  :   0 z  :   2 r0 :   0 r1 :   7 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:  58 r17:  37 r18:   7 r19:  40 r20:   9 
-r21:  10 r22:   6 r23:  20 r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 
-r29:   0 r30:   4 r31:   4 
-Registers used: 12 out of 35 (34.3%)
+r13:   0 r14:   0 r15:   0 r16:  80 r17:  39 r18:  15 r19:  16 r20:  16 
+r21:  10 r22:   6 r23:   5 r24:   4 r25:   0 r26:   0 r27:   0 r28:   0 
+r29:   0 r30:   8 r31:   8 
+Registers used: 13 out of 35 (37.1%)
 
 "ATmega328P" instruction use summary:
-.lds  :   0 .sts  :   0 adc   :   2 add   :   2 adiw  :   0 and   :   0 
-andi  :   2 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
-brcc  :   0 brcs  :   0 break :   0 breq  :   1 brge  :   0 brhc  :   0 
-brhs  :   0 brid  :   0 brie  :   0 brlo  :   1 brlt  :   0 brmi  :   0 
-brne  :  20 brpl  :   0 brsh  :   1 brtc  :   0 brts  :  16 brvc  :   0 
-brvs  :   0 bset  :   0 bst   :   1 call  :   0 cbi   :  18 cbr   :   0 
-clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   5 cls   :   0 
-clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   0 cpc   :   0 
-cpi   :  21 cpse  :   0 dec   :   2 eor   :   0 fmul  :   0 fmuls :   0 
-fmulsu:   0 icall :   0 ijmp  :   0 in    :   3 inc   :   1 jmp   :   0 
-ld    :   0 ldd   :   0 ldi   :  89 lds   :   3 lpm   :   5 lsl   :   1 
-lsr   :   1 mov   :   3 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
-neg   :   0 nop   :   6 or    :   0 ori   :   2 out   :  16 pop   :   8 
-push  :   8 rcall :   6 ret   :   4 reti  :   2 rjmp  :  71 rol   :   0 
-ror   :   0 sbc   :   0 sbci  :   0 sbi   :  56 sbic  :  16 sbis  :   0 
-sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :  17 sec   :   0 seh   :   0 
+.lds  :   0 .sts  :   0 adc   :   1 add   :   3 adiw  :   0 and   :   0 
+andi  :   4 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
+brcc  :   1 brcs  :   0 break :   0 breq  :  24 brge  :   0 brhc  :   0 
+brhs  :   0 brid  :   0 brie  :   0 brlo  :   3 brlt  :   0 brmi  :   0 
+brne  :   4 brpl  :   0 brsh  :   2 brtc  :   0 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :  15 cbi   :  22 cbr   :   0 
+clc   :   0 clh   :   0 cli   :   1 cln   :   0 clr   :   3 cls   :   0 
+clt   :   0 clv   :   0 clz   :   0 com   :   1 cp    :   1 cpc   :   0 
+cpi   :  27 cpse  :   0 dec   :   5 eor   :   0 fmul  :   0 fmuls :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :   1 inc   :   5 jmp   :   0 
+ld    :   0 ldd   :   0 ldi   :  61 lds   :   6 lpm   :   4 lsl   :   2 
+lsr   :   2 mov   :   7 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+neg   :   0 nop   :   4 or    :   0 ori   :   2 out   :   6 pop   :  15 
+push  :  15 rcall :   0 ret   :  12 reti  :   1 rjmp  :  32 rol   :   0 
+ror   :   0 sbc   :   0 sbci  :   0 sbi   :  59 sbic  :   0 sbis  :   0 
+sbiw  :   0 sbr   :   0 sbrc  :   1 sbrs  :  21 sec   :   0 seh   :   0 
 sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
-sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   6 
-sub   :   0 subi  :   0 swap  :   0 tst   :   0 wdr   :   0 
-Instructions used: 35 out of 113 (31.0%)
+sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   8 
+sub   :   0 subi  :   0 swap  :   0 tst   :   3 wdr   :   0 
+Instructions used: 38 out of 113 (33.6%)
 
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x0003da    848     78    926   32768   2.8%
-[.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
+[.cseg] 0x000000 0x0003e6    824    144    968   32768   3.0%
+[.dseg] 0x000100 0x000101      0      1      1    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
 Assembly complete, 0 errors, 0 warnings

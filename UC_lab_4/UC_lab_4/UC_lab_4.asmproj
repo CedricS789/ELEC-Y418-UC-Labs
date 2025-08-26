@@ -15,7 +15,7 @@
     <Name>UC_lab_4</Name>
     <RootNamespace>UC_lab_4</RootNamespace>
     <ToolchainFlavour>Native</ToolchainFlavour>
-    <EntryFile>$(MSBuildProjectDirectory)\project_B.asm</EntryFile>
+    <EntryFile>$(MSBuildProjectDirectory)\task_10_E.asm</EntryFile>
     <KeepTimersRunning>true</KeepTimersRunning>
     <OverrideVtor>false</OverrideVtor>
     <CacheFlash>true</CacheFlash>
@@ -69,10 +69,22 @@
     <Compile Include="project_B.asm">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="project_C.asm">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="task_10_A.asm">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="task_10_B.asm">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="task_10_C.asm">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="task_10_D.asm">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="task_10_E.asm">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="task_8.asm">

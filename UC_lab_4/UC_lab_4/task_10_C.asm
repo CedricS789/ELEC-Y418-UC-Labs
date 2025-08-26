@@ -61,6 +61,9 @@
 .equ CHAR_BYTES       = 8         ; Storage bytes per character (7+1 padding)
 .equ COLUMN_CYCLES    = 16        ; Shift register fill cycles (80÷5)
 
+; Target Block Selection (0-15, where 0 is first block out, 15 is last)
+.equ TARGET_BLOCK     = 14        ; Block to display character on
+
 ; Derived Constants and Bit Masks
 .equ SR_OUTPUT_MASK   = (1<<SR_DATA_PIN)|(1<<SR_LATCH_PIN)|(1<<SR_CLOCK_PIN)
 .equ ROW_RESET_MASK   = 0b01000000  ; Initial row selector (row 6, MSB first)
@@ -155,6 +158,9 @@ system_init:
     
     ; Initialize display state management variables
     call  initialize_display_state
+    
+    ; Clear r1 for use as zero register (AVR ABI requirement)
+    clr   r1                           ; r1 used for zero bits in block selection
     
     ; System ready - enable global interrupt flag
     sei                                ; Global interrupt enable
@@ -302,7 +308,7 @@ timer0_latch_completion_isr:
 ; Registers: 
 ;   Input:  r21 (current row selector), r22 (current row index)  
 ;   Output: r21, r22 (advanced to next row with wraparound)
-;   Temp:   r16, r17, r18, r20 (automatically saved/restored)
+;   Temp:   r16, r17, r18, r19, r20 (automatically saved/restored)
 ; Hardware: Generates 87 clock pulses + precision latch pulse
 ; -----------------------------------------------------------------------------
 refresh_current_display_row:
@@ -310,6 +316,7 @@ refresh_current_display_row:
     push  r16                          ; Timer control register
     push  r17                          ; General purpose
     push  r18                          ; Loop counter
+    push  r19                          ; Current block index
 
 fetch_row_bitmap_data:
     ; Calculate character bitmap address: char_7 + row_offset
@@ -326,19 +333,36 @@ fetch_row_bitmap_data:
     lpm   r20, Z                       ; Load row bitmap from program memory
 
 transmit_column_data:
-    ; Transmit 80 bits of column data (16 cycles × 5 bits/cycle)
-    ; This fills the shift register chain with repeated column pattern
-    ldi   r18, COLUMN_CYCLES           ; Load iteration counter
+    ; Transmit column data for 16 blocks, only TARGET_BLOCK gets the character
+    ldi   r18, COLUMN_CYCLES           ; Load iteration counter (16 blocks)
+    clr   r19                          ; Current block index (0-15)
     
 column_transmission_loop:
+    ; Check if this is the target block
+    cpi   r19, TARGET_BLOCK            ; Compare current block with target
+    brne  send_zero_block              ; If not target, send zeros
+    
+send_character_block:
+    ; Send the actual character data for this block
     SHIFT_BIT_OUT r20, 0               ; Transmit bit 0 (rightmost column)
     SHIFT_BIT_OUT r20, 1               ; Transmit bit 1  
     SHIFT_BIT_OUT r20, 2               ; Transmit bit 2
     SHIFT_BIT_OUT r20, 3               ; Transmit bit 3
     SHIFT_BIT_OUT r20, 4               ; Transmit bit 4 (leftmost column)
+    rjmp  next_block                   ; Skip to next block
     
+send_zero_block:
+    ; Send zeros for non-target blocks (r1 is always 0)
+    SHIFT_BIT_OUT r1, 0                ; Transmit 0
+    SHIFT_BIT_OUT r1, 1                ; Transmit 0
+    SHIFT_BIT_OUT r1, 2                ; Transmit 0
+    SHIFT_BIT_OUT r1, 3                ; Transmit 0
+    SHIFT_BIT_OUT r1, 4                ; Transmit 0
+    
+next_block:
+    inc   r19                          ; Move to next block
     dec   r18                          ; Decrement loop counter
-    brne  column_transmission_loop     ; Continue until all cycles complete
+    brne  column_transmission_loop     ; Continue until all blocks complete
 
 insert_row_separator:
     ; Insert clean separator between column and row data  
@@ -379,6 +403,7 @@ initiate_hardware_latch:
     sts   TCCR0B, r16                  ; Start timer with clock source
     
     ; Restore working registers from stack (reverse LIFO order)
+    pop   r19                          ; Restore block index
     pop   r18                          ; Restore loop counter
     pop   r17                          ; Restore general purpose
     pop   r16                          ; Restore timer control
@@ -398,14 +423,17 @@ initiate_hardware_latch:
 ; MODIFICATION GUIDELINES:
 ; ├─ Character Set: Edit character_bitmap_table section
 ; ├─ Display Size: Modify MATRIX_ROWS/MATRIX_COLS constants  
+; ├─ Target Block: Change TARGET_BLOCK constant (0-15)
+; ├─ Character Selection: Change char_7 reference in fetch_row_bitmap_data
 ; ├─ Timing: Adjust T0_LATCH_DELAY for different latch widths
 ; ├─ Pin Assignment: Change SR_*_PIN constants for different connections
 ; └─ Refresh Rate: Modify main loop or add delays for slower refresh
 ;
 ; KNOWN LIMITATIONS:
-; ├─ Single character display (easily extended to multiple characters)
+; ├─ Single character display on one block only (easily extended to multiple)
 ; ├─ No brightness control (could add PWM dimming)
 ; ├─ Fixed character (char_7) - could implement character selection
+; ├─ Fixed target block - could implement dynamic block selection
 ; └─ No error recovery for hardware faults
 ;
 ; VERSION HISTORY:

@@ -8,9 +8,26 @@
 .def key_code  = r19             ; Create an alias 'key_code' for r19, which will store the pressed key's ID.
 
 ; --- Keypad Mapping Constants ---
-.equ KEY_4 = 9                  ; Assign the readable name 'KEY_4' to the scan code 9.
-.equ KEY_7 = 13                 ; Assign the readable name 'KEY_7' to the scan code 13.
-.equ KEY_8 = 14                 ; Assign the readable name 'KEY_8' to the scan code 14.
+.equ KEY_A = 1
+.equ KEY_0 = 2
+.equ KEY_B = 3
+.equ KEY_C = 4
+
+.equ KEY_1 = 5
+.equ KEY_2 = 6
+.equ KEY_3 = 7
+.equ KEY_D = 8
+
+.equ KEY_4 = 9                  ; Assign the name 'KEY_4' to the scan code 9.
+.equ KEY_5 = 10
+.equ KEY_6 = 11
+.equ KEY_E = 12
+
+.equ KEY_7 = 13                 ; Assign the name 'KEY_7' to the scan code 13.
+.equ KEY_8 = 14                 ; Assign the name 'KEY_8' to the scan code 14.
+.equ KEY_9 = 15                 ; Assign the name 'KEY_9' to the scan code 15.
+.equ KEY_F = 16
+
 
 .org 0x0000                     ; Set the program counter to address 0x0000, the RESET vector.
     rjmp init                   ; Place a jump to the 'init' label. This is the first code to run on power-up.
