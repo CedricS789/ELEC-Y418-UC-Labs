@@ -1,0 +1,33 @@
+<ASSEMBLER_INFO>
+ <VERSION>2.2.8</VERSION>
+ <DEVICE>"ATmega328P"</DEVICE>
+ <WORKING_DIR>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\Practice\Practice\Debug</WORKING_DIR>
+ <INCLUDE_PATH>
+  <DIR>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc</DIR>
+  <DIR>C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avrassembler\Include</DIR>
+  <DIR></DIR>
+ </INCLUDE_PATH>
+ <SOURCE_FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\Practice\Practice\test.asm</SOURCE_FILE>
+ <INCLUDED_FILES>
+  <FILE>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc</FILE>
+  <FILE>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc</FILE>
+ </INCLUDED_FILES>
+ <OBJECT_FILES>
+  <FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\Practice\Practice\Debug\Practice.obj</FILE>
+ </OBJECT_FILES>
+ <HEX_FILES>
+  <FILE>Practice.hex</FILE>
+ </HEX_FILES>
+ <OUTPUT_FILES>
+  <FILE>Practice.map</FILE>
+  <FILE>Practice.lss</FILE>
+ </OUTPUT_FILES>
+ <LABELS>
+  <init><FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\Practice\Practice\test.asm</FILE><LINE>6</LINE></init>
+  <start><FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\Practice\Practice\test.asm</FILE><LINE>13</LINE></start>
+  <loop><FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\Practice\Practice\test.asm</FILE><LINE>18</LINE></loop>
+  <set_1><FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\Practice\Practice\test.asm</FILE><LINE>29</LINE></set_1>
+  <latch><FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\Practice\Practice\test.asm</FILE><LINE>49</LINE></latch>
+  <loop2><FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\Practice\Practice\test.asm</FILE><LINE>38</LINE></loop2>
+ </LABELS>
+</ASSEMBLER_INFO>

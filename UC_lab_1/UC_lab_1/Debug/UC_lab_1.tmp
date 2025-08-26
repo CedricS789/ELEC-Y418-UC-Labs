@@ -1,0 +1,29 @@
+<ASSEMBLER_INFO>
+ <VERSION>2.2.8</VERSION>
+ <DEVICE>"ATmega328P"</DEVICE>
+ <WORKING_DIR>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_1\UC_lab_1\Debug</WORKING_DIR>
+ <INCLUDE_PATH>
+  <DIR>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc</DIR>
+  <DIR>C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avrassembler\Include</DIR>
+  <DIR></DIR>
+ </INCLUDE_PATH>
+ <SOURCE_FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_1\UC_lab_1\task_2.asm</SOURCE_FILE>
+ <INCLUDED_FILES>
+  <FILE>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc</FILE>
+ </INCLUDED_FILES>
+ <OBJECT_FILES>
+  <FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_1\UC_lab_1\Debug\UC_lab_1.obj</FILE>
+ </OBJECT_FILES>
+ <HEX_FILES>
+  <FILE>UC_lab_1.hex</FILE>
+ </HEX_FILES>
+ <OUTPUT_FILES>
+  <FILE>UC_lab_1.map</FILE>
+  <FILE>UC_lab_1.lss</FILE>
+ </OUTPUT_FILES>
+ <LABELS>
+  <init><FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_1\UC_lab_1\task_2.asm</FILE><LINE>4</LINE></init>
+  <main><FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_1\UC_lab_1\task_2.asm</FILE><LINE>15</LINE></main>
+  <SwitchUp><FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_1\UC_lab_1\task_2.asm</FILE><LINE>24</LINE></SwitchUp>
+ </LABELS>
+</ASSEMBLER_INFO>

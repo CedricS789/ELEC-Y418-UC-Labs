@@ -1,0 +1,32 @@
+<ASSEMBLER_INFO>
+ <VERSION>2.2.8</VERSION>
+ <DEVICE>"ATmega328P"</DEVICE>
+ <WORKING_DIR>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_2\UC_lab_2\Debug</WORKING_DIR>
+ <INCLUDE_PATH>
+  <DIR>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc</DIR>
+  <DIR>C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avrassembler\Include</DIR>
+  <DIR></DIR>
+ </INCLUDE_PATH>
+ <SOURCE_FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_2\UC_lab_2\task_6.asm</SOURCE_FILE>
+ <INCLUDED_FILES>
+  <FILE>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc</FILE>
+ </INCLUDED_FILES>
+ <OBJECT_FILES>
+  <FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_2\UC_lab_2\Debug\UC_lab_2.obj</FILE>
+ </OBJECT_FILES>
+ <HEX_FILES>
+  <FILE>UC_lab_2.hex</FILE>
+ </HEX_FILES>
+ <OUTPUT_FILES>
+  <FILE>UC_lab_2.map</FILE>
+  <FILE>UC_lab_2.lss</FILE>
+ </OUTPUT_FILES>
+ <LABELS>
+  <init><FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_2\UC_lab_2\task_6.asm</FILE><LINE>11</LINE></init>
+  <ISR_Timer0_OVF><FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_2\UC_lab_2\task_6.asm</FILE><LINE>61</LINE></ISR_Timer0_OVF>
+  <main><FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_2\UC_lab_2\task_6.asm</FILE><LINE>29</LINE></main>
+  <SwitchIsOn><FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_2\UC_lab_2\task_6.asm</FILE><LINE>40</LINE></SwitchIsOn>
+  <CheckJoyButton><FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_2\UC_lab_2\task_6.asm</FILE><LINE>44</LINE></CheckJoyButton>
+  <JoyPressed><FILE>C:\Cloud\OneDrive - Université Libre de Bruxelles\ULB\Master\MA1\2024 - Q2\ELEC-Y418 - Sensors And Microsystem Electronics\2 - Labs\UC\2 - UC - Code\UC_lab_2\UC_lab_2\task_6.asm</FILE><LINE>55</LINE></JoyPressed>
+ </LABELS>
+</ASSEMBLER_INFO>
